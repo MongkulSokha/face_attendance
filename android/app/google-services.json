@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1056032751950",
+    "project_id": "attendance-app-7f803",
+    "storage_bucket": "attendance-app-7f803.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1056032751950:android:6d8504498da29a7cdc5e1f",
+        "android_client_info": {
+          "package_name": "com.app.faceattendanceapp.face_attendance"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhTgMQ2siQhyJiStUSUxLiqizbvaViFWo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
