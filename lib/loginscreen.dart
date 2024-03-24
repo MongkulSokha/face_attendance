@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:face_attendance/homescreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +19,8 @@ class _LoginScreenState extends State<LoginScreen> {
   double screenWidth = 0;
 
   Color primary = const Color(0xff1d83ec);
+
+  late SharedPreferences sharedPreferences;
 
   @override
   Widget build(BuildContext context) {
@@ -95,11 +98,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         try {
                           if (password == snap.docs[0]['password']) {
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const HomeScreen())
-                            );
+                            sharedPreferences = await SharedPreferences.getInstance();
+
+                            sharedPreferences.setString('studentId', id).then((_) {
+                              Navigator.pushReplacement(context, MaterialPageRoute(
+                                      builder: (context) => const HomeScreen())
+                              );
+                            });
                           } else {
                             ScaffoldMessenger.of(context)
                                 .showSnackBar(const SnackBar(
