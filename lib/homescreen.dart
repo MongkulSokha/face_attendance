@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:face_attendance/calendarscreen.dart';
+import 'package:face_attendance/services/location_service.dart';
 import 'package:face_attendance/todayscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -32,8 +33,24 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-
+    _startLocationService();
     getId();
+  }
+
+  void _startLocationService() async {
+    LocationService().initialize();
+
+    LocationService().getLongtitute().then((value) {
+      setState(() {
+        User.long = value!;
+      });
+
+      LocationService().getLatitute().then((value) {
+        setState(() {
+          User.lat = value!;
+        });
+      });
+    });
   }
 
   void getId() async {
