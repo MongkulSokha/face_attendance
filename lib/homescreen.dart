@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:face_attendance/calendarscreen.dart';
 import 'package:face_attendance/todayscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import 'model/user.dart';
 import 'profilescreen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,13 +21,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Color primary = const Color(0xff1d83ec);
 
-  int currentIndex = 0;
+  int currentIndex = 1;
 
   List<IconData> navigationIcons = [
     FontAwesomeIcons.calendarDay,
-    FontAwesomeIcons.check,
-    FontAwesomeIcons.userLarge,
+    FontAwesomeIcons.checkToSlot,
+    FontAwesomeIcons.circleUser,
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    getId();
+  }
+
+  void getId() async {
+    QuerySnapshot snap = await FirebaseFirestore.instance
+        .collection("Student")
+        .where('id', isEqualTo: User.studentId)
+        .get();
+
+    setState(() {
+      User.id = snap.docs[0].id;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +55,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: IndexedStack(
         index: currentIndex,
-        children: const [
-          CalendarScreen(),
-          TodayScreen(),
-          ProfileScreen(),
-
+        children: [
+          new CalendarScreen(),
+          new TodayScreen(),
+          new ProfileScreen(),
         ],
       ),
       bottomNavigationBar: Container(
@@ -68,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
               for (int i = 0; i < navigationIcons.length; i++) ...<Expanded>{
                 Expanded(
                   child: GestureDetector(
-                    onTap: (){
+                    onTap: () {
                       setState(() {
                         currentIndex = i;
                       });
@@ -83,18 +102,22 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Icon(
                               navigationIcons[i],
-                              color: i == currentIndex ? primary : Colors.black54,
-                              size: i == currentIndex ? 30 : 25,
+                              color:
+                                  i == currentIndex ? primary : Colors.black54,
+                              size: i == currentIndex ? 27 : 24,
                             ),
-                            i == currentIndex ? Container(
-                              margin: const EdgeInsets.only(top: 6),
-                              height: 3,
-                              width: 22,
-                              decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.all(Radius.circular(40)),
-                                color: primary,
-                              ),
-                            ) : const SizedBox(),
+                            i == currentIndex
+                                ? Container(
+                                    margin: const EdgeInsets.only(top: 6),
+                                    height: 3,
+                                    width: 22,
+                                    decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(40)),
+                                      color: primary,
+                                    ),
+                                  )
+                                : const SizedBox(),
                           ],
                         ),
                       ),
