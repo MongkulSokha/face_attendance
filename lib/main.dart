@@ -20,6 +20,7 @@ Future<void> main() async {
       appId: "1:1056032751950:android:6d8504498da29a7cdc5e1f",
       messagingSenderId: "1056032751950",
       projectId: "attendance-app-7f803",
+      storageBucket: "attendance-app-7f803.appspot.com",
     ),
   )
   :await Firebase.initializeApp();

@@ -3,7 +3,6 @@ import 'package:face_attendance/calendarscreen.dart';
 import 'package:face_attendance/services/location_service.dart';
 import 'package:face_attendance/todayscreen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'model/user.dart';
@@ -34,7 +33,35 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _startLocationService();
-    getId();
+
+    getId().then((value) {
+      _getCredentials();
+      _getProfilePic();
+    });
+
+  }
+
+  void _getCredentials() async {
+    try{
+      DocumentSnapshot doc = await FirebaseFirestore.instance.collection(
+          "Student").doc(User.id).get();
+      setState(() {
+        User.canEdit = doc['canEdit'];
+        User.firstName = doc['firstName'];
+        User.lastName = doc['lastName'];
+        User.birthDate = doc['birthDate'];
+        User.address = doc['address'];
+      });
+    }catch(e){
+      return;
+    }
+  }
+
+  void _getProfilePic() async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance.collection("Student").doc(User.id).get();
+    setState(() {
+      User.profilePicLink = doc['profilePic'];
+    });
   }
 
   void _startLocationService() async {
@@ -53,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void getId() async {
+  Future<void> getId() async {
     QuerySnapshot snap = await FirebaseFirestore.instance
         .collection("Student")
         .where('id', isEqualTo: User.studentId)
@@ -66,8 +93,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    screenHeight = MediaQuery.of(context).size.height;
-    screenWidth = MediaQuery.of(context).size.width;
+    screenHeight = MediaQuery
+        .of(context)
+        .size
+        .height;
+    screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
 
     return Scaffold(
       body: IndexedStack(
@@ -120,20 +153,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             Icon(
                               navigationIcons[i],
                               color:
-                                  i == currentIndex ? primary : Colors.black54,
+                              i == currentIndex ? primary : Colors.black54,
                               size: i == currentIndex ? 27 : 24,
                             ),
                             i == currentIndex
                                 ? Container(
-                                    margin: const EdgeInsets.only(top: 6),
-                                    height: 3,
-                                    width: 22,
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(40)),
-                                      color: primary,
-                                    ),
-                                  )
+                              margin: const EdgeInsets.only(top: 6),
+                              height: 3,
+                              width: 22,
+                              decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.all(
+                                    Radius.circular(40)),
+                                color: primary,
+                              ),
+                            )
                                 : const SizedBox(),
                           ],
                         ),

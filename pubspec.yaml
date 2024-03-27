@@ -45,6 +45,9 @@ dependencies:
   month_year_picker: ^0.3.0+1
   geocoding: ^3.0.0
   location: ^5.0.3
+  image_picker: ^1.0.7
+  flutter_reference: ^0.0.5
+  firebase_storage: ^11.6.9
 
 dev_dependencies:
   flutter_test:

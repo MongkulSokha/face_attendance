@@ -93,7 +93,7 @@ class _TodayScreenState extends State<TodayScreen> {
             Container(
               alignment: Alignment.centerLeft,
               child: Text(
-                "Student ${User.studentId}",
+                "${User.lastName}",
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: screenWidth / 14,

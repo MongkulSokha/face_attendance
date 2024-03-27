@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:face_attendance/homescreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -73,9 +74,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   fieldTitle("Student ID:"),
-                  customField("Enter your Student ID", idController, false),
+                  customField("Enter your Student ID", idController, false, Icons.person),
                   fieldTitle("Password:"),
-                  customField("Enter your Password", passController, true),
+                  customField("Enter your Password", passController, true, Icons.lock),
                   GestureDetector(
                     onTap: () async {
                       FocusScope.of(context).unfocus();
@@ -172,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget customField(
-      String hint, TextEditingController controller, bool obscure) {
+      String hint, TextEditingController controller, bool obscure, IconData icon) {
     return Container(
       width: screenWidth,
       margin: EdgeInsets.only(bottom: screenHeight / 30),
@@ -188,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SizedBox(
             width: screenWidth / 8,
             child: Icon(
-              Icons.person,
+              icon,
               color: primary,
             ),
           ),
