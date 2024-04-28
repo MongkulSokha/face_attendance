@@ -25,6 +25,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   TextEditingController lastNameController = TextEditingController();
   TextEditingController addressController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   void pickUploadProfilePic() async {
     final image = await ImagePicker().pickImage(
       source: ImageSource.gallery,

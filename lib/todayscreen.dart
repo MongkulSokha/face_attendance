@@ -1,9 +1,11 @@
 import 'dart:async';
-
+import 'package:face_attendance/google_map_screen.dart';
+import 'package:geocoding/geocoding.dart'; // Import geocoding package
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:geoflutterfire2/geoflutterfire2.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 import 'package:intl/intl.dart';
 
@@ -25,6 +27,10 @@ class _TodayScreenState extends State<TodayScreen> {
   String location = " ";
 
   Color primary = const Color(0xff1d83ec);
+
+  late GeoFlutterFire geo;
+  bool isInsideGeofence = false;
+  late SharedPreferences sharedPreferences;
 
   @override
   void initState() {
@@ -93,7 +99,7 @@ class _TodayScreenState extends State<TodayScreen> {
             Container(
               alignment: Alignment.centerLeft,
               child: Text(
-                "${User.lastName}",
+                User.lastName,
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: screenWidth / 14,
@@ -217,7 +223,7 @@ class _TodayScreenState extends State<TodayScreen> {
                 }),
             checkOut == "--/--"
                 ? Container(
-                    margin: const EdgeInsets.only(top: 24, bottom: 12),
+                    margin: const EdgeInsets.only(top: 24, bottom: 40),
                     child: Builder(
                       builder: (context) {
                         final GlobalKey<SlideActionState> key = GlobalKey();
@@ -243,13 +249,13 @@ class _TodayScreenState extends State<TodayScreen> {
                           innerColor: primary,
                           key: key,
                           onSubmit: () async {
-                            if(User.lat != 0){
+                            if (User.lat != 0) {
                               _getLocation();
 
                               Future.delayed(const Duration(milliseconds: 500),
-                                      () {
-                                    key.currentState!.reset();
-                                  });
+                                  () {
+                                key.currentState!.reset();
+                              });
 
                               QuerySnapshot snap = await FirebaseFirestore
                                   .instance
@@ -263,15 +269,15 @@ class _TodayScreenState extends State<TodayScreen> {
                                   .doc(snap.docs[0].id)
                                   .collection("Record")
                                   .doc(DateFormat('dd MMMM yy')
-                                  .format(DateTime.now()))
+                                      .format(DateTime.now()))
                                   .get();
 
                               try {
                                 String checkIn = snap2['checkIn'];
 
                                 setState(() {
-                                  checkOut =
-                                      DateFormat('hh:mm').format(DateTime.now());
+                                  checkOut = DateFormat('hh:mm')
+                                      .format(DateTime.now());
                                 });
 
                                 await FirebaseFirestore.instance
@@ -279,29 +285,29 @@ class _TodayScreenState extends State<TodayScreen> {
                                     .doc(snap.docs[0].id)
                                     .collection("Record")
                                     .doc(DateFormat('dd MMMM yy')
-                                    .format(DateTime.now()))
+                                        .format(DateTime.now()))
                                     .update({
                                   'date': Timestamp.now(),
                                   'checkIn': checkIn,
-                                  'checkOut':
-                                  DateFormat('hh:mm').format(DateTime.now()),
+                                  'checkOut': DateFormat('hh:mm')
+                                      .format(DateTime.now()),
                                   'checkOutLocation': location,
                                 });
                               } catch (e) {
                                 setState(() {
-                                  checkIn =
-                                      DateFormat('hh:mm').format(DateTime.now());
+                                  checkIn = DateFormat('hh:mm')
+                                      .format(DateTime.now());
                                 });
                                 await FirebaseFirestore.instance
                                     .collection("Student")
                                     .doc(snap.docs[0].id)
                                     .collection("Record")
                                     .doc(DateFormat('dd MMMM yy')
-                                    .format(DateTime.now()))
+                                        .format(DateTime.now()))
                                     .set({
                                   'date': Timestamp.now(),
-                                  'checkIn':
-                                  DateFormat('hh:mm').format(DateTime.now()),
+                                  'checkIn': DateFormat('hh:mm')
+                                      .format(DateTime.now()),
                                   'checkOut': "--/--",
                                   'checkInLocation': location,
                                 });
@@ -311,10 +317,10 @@ class _TodayScreenState extends State<TodayScreen> {
                               Timer(const Duration(seconds: 3), () async {
                                 _getLocation();
 
-                                Future.delayed(const Duration(milliseconds: 500),
-                                        () {
-                                      key.currentState!.reset();
-                                    });
+                                Future.delayed(
+                                    const Duration(milliseconds: 500), () {
+                                  key.currentState!.reset();
+                                });
 
                                 QuerySnapshot snap = await FirebaseFirestore
                                     .instance
@@ -328,15 +334,15 @@ class _TodayScreenState extends State<TodayScreen> {
                                     .doc(snap.docs[0].id)
                                     .collection("Record")
                                     .doc(DateFormat('dd MMMM yy')
-                                    .format(DateTime.now()))
+                                        .format(DateTime.now()))
                                     .get();
 
                                 try {
                                   String checkIn = snap2['checkIn'];
 
                                   setState(() {
-                                    checkOut =
-                                        DateFormat('hh:mm').format(DateTime.now());
+                                    checkOut = DateFormat('hh:mm')
+                                        .format(DateTime.now());
                                   });
 
                                   await FirebaseFirestore.instance
@@ -344,29 +350,29 @@ class _TodayScreenState extends State<TodayScreen> {
                                       .doc(snap.docs[0].id)
                                       .collection("Record")
                                       .doc(DateFormat('dd MMMM yy')
-                                      .format(DateTime.now()))
+                                          .format(DateTime.now()))
                                       .update({
                                     'date': Timestamp.now(),
                                     'checkIn': checkIn,
-                                    'checkOut':
-                                    DateFormat('hh:mm').format(DateTime.now()),
+                                    'checkOut': DateFormat('hh:mm')
+                                        .format(DateTime.now()),
                                     'checkOutLocation': location,
                                   });
                                 } catch (e) {
                                   setState(() {
-                                    checkIn =
-                                        DateFormat('hh:mm').format(DateTime.now());
+                                    checkIn = DateFormat('hh:mm')
+                                        .format(DateTime.now());
                                   });
                                   await FirebaseFirestore.instance
                                       .collection("Student")
                                       .doc(snap.docs[0].id)
                                       .collection("Record")
                                       .doc(DateFormat('dd MMMM yy')
-                                      .format(DateTime.now()))
+                                          .format(DateTime.now()))
                                       .set({
                                     'date': Timestamp.now(),
-                                    'checkIn':
-                                    DateFormat('hh:mm').format(DateTime.now()),
+                                    'checkIn': DateFormat('hh:mm')
+                                        .format(DateTime.now()),
                                     'checkOut': "--/--",
                                     'checkInLocation': location,
                                   });
@@ -395,6 +401,22 @@ class _TodayScreenState extends State<TodayScreen> {
                     "Location: $location",
                   )
                 : const SizedBox(),
+            GestureDetector(
+              onTap: () {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const GoogleMapScreen()));
+              },
+              child: Text(
+                "Check Geofence",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: screenWidth / 20,
+                  fontFamily: "NexaBold",
+                ),
+              ),
+            ),
           ],
         ),
       ),

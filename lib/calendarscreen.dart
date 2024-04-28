@@ -21,6 +21,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
   String _month = DateFormat('MMMM').format(DateTime.now());
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     screenHeight = MediaQuery.of(context).size.height;
     screenWidth = MediaQuery.of(context).size.width;
