@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:face_attendance/calendarscreen.dart';
 import 'package:face_attendance/services/location_service.dart';
-import 'package:face_attendance/todayscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:ntp/ntp.dart';
 
-import 'model/user.dart';
+import '../model/user.dart';
+import 'calendarscreen.dart';
 import 'profilescreen.dart';
+import 'todayscreen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

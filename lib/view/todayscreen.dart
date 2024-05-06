@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:face_attendance/google_map_screen.dart';
+import 'package:face_attendance/recognition/face_registration_screen.dart';
 import 'package:geocoding/geocoding.dart'; // Import geocoding package
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 import 'package:intl/intl.dart';
 
-import 'model/user.dart';
+import '../model/user.dart';
+import 'google_map_screen.dart';
 
 class TodayScreen extends StatefulWidget {
   const TodayScreen({super.key});
@@ -401,19 +402,41 @@ class _TodayScreenState extends State<TodayScreen> {
                     "Location: $location",
                   )
                 : const SizedBox(),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const GoogleMapScreen()));
-              },
-              child: Text(
-                "Check Geofence",
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: screenWidth / 20,
-                  fontFamily: "NexaBold",
+            Container(
+              margin: const EdgeInsets.only(top: 30),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const GoogleMapScreen()));
+                },
+                child: Text(
+                  "Check Geofence",
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: screenWidth / 20,
+                    fontFamily: "NexaBold",
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(top: 30),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const FaceRegistrationScreen()));
+                },
+                child: Text(
+                  "Face Register",
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: screenWidth / 20,
+                    fontFamily: "NexaBold",
+                  ),
                 ),
               ),
             ),

@@ -1,10 +1,11 @@
 import 'dart:async';
 
-import 'package:face_attendance/homescreen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:maps_toolkit/maps_toolkit.dart' as maps_tool;
+
+import 'homescreen.dart';
 
 class GoogleMapScreen extends StatefulWidget {
   const GoogleMapScreen({super.key});
@@ -89,7 +90,30 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: currentLocation == null
-          ? const Center(child: Text("Loading"))
+          ? Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 40),
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: MaterialButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HomeScreen(),
+                    ),
+                  );
+                },
+                textColor: Colors.black,
+                child: const Icon(Icons.arrow_back),
+              ),
+            ),
+          ),
+          const Center(child: Text("Loading")),
+        ],
+      )
           :Column(
         children: [
           Container(
