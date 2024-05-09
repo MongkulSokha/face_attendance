@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:face_attendance/view/loginscreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:month_year_picker/month_year_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +13,11 @@ import 'view/homescreen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    // systemNavigationBarColor: Colors.blue,
+    statusBarColor: Colors.transparent,
+  ));
 
   Platform.isAndroid?
   await Firebase.initializeApp(

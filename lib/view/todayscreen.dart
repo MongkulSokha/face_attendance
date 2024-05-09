@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:face_attendance/recognition/face_recognition_screen.dart';
 import 'package:face_attendance/recognition/face_registration_screen.dart';
 import 'package:geocoding/geocoding.dart'; // Import geocoding package
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -432,6 +433,25 @@ class _TodayScreenState extends State<TodayScreen> {
                 },
                 child: Text(
                   "Face Register",
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: screenWidth / 20,
+                    fontFamily: "NexaBold",
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(top: 30),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const RecognitionScreen()));
+                },
+                child: Text(
+                  "Face Recognition",
                   style: TextStyle(
                     color: Colors.blue,
                     fontSize: screenWidth / 20,

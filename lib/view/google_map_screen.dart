@@ -93,7 +93,7 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
           ? Column(
         children: [
           Container(
-            margin: const EdgeInsets.only(top: 40),
+            margin: const EdgeInsets.only(top: 30),
             alignment: Alignment.centerLeft,
             child: Padding(
               padding: const EdgeInsets.all(5.0),
@@ -118,7 +118,7 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
         children: [
           Container(
             alignment: Alignment.centerLeft,
-            margin: const EdgeInsets.only(top: 40),
+            margin: const EdgeInsets.only(top: 30),
             child: Padding(
               padding: const EdgeInsets.all(5.0),
               child: MaterialButton(
