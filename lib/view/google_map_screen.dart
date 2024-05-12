@@ -86,6 +86,17 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
     });
   }
 
+  Future<void> _refresh() async {
+    // Simulate fetching updated data
+    await Future.delayed(
+        const Duration(seconds: 2)); // Simulating a delay of 1 second
+
+    // Update the _month variable with the current month
+    setState(() {
+      currentLocation;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:camera/camera.dart';
 import 'package:face_attendance/view/loginscreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -11,12 +12,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'model/user.dart';
 import 'view/homescreen.dart';
 
+late List<CameraDescription> cameras;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  WidgetsFlutterBinding.ensureInitialized();
+  cameras = await availableCameras();
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    // systemNavigationBarColor: Colors.blue,
     statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.dark,
   ));
 
   Platform.isAndroid?

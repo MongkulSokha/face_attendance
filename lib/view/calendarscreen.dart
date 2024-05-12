@@ -5,7 +5,6 @@ import 'package:month_year_picker/month_year_picker.dart';
 
 import '../model/user.dart';
 
-
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
@@ -26,15 +25,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
     super.initState();
   }
 
+  Future<void> _refresh() async {
+    // Simulate fetching updated data
+    await Future.delayed(
+        const Duration(seconds: 2)); // Simulating a delay of 1 second
+
+    // Update the _month variable with the current month
+    setState(() {
+      _month = DateFormat('MMMM').format(DateTime.now());
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     screenHeight = MediaQuery.of(context).size.height;
     screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
           children: [
             Container(
               alignment: Alignment.centerLeft,
