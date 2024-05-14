@@ -7,4 +7,5 @@ class Recognition {
   double distance;
   /// Constructs a Category.
   Recognition(this.name, this.location,this.embeddings,this.distance);
+
 }

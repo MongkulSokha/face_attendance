@@ -7,18 +7,18 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
 
 import '../main.dart';
-import '../ml/new/Recognition.dart';
-import '../ml/new/Recognizer.dart';
+import '../ml/recognition.dart';
+import '../ml/recognizer.dart';
 import '../view/homescreen.dart';
 
 class LiveRecognition extends StatefulWidget {
   const LiveRecognition({Key? key}) : super(key: key);
 
   @override
-  State<LiveRecognition> createState() => _HomePageState();
+  State<LiveRecognition> createState() => HomePageState();
 }
 
-class _HomePageState extends State<LiveRecognition> {
+class HomePageState extends State<LiveRecognition> {
   dynamic controller;
   bool isBusy = false;
   late Size size;
@@ -408,37 +408,9 @@ class _HomePageState extends State<LiveRecognition> {
       );
     }
 
-    stackChildren.add(
-      Positioned(
-        bottom: size.height - 100,
-        left: 0,
-        width: size.width,
-        height: 100,
-        child: Container(
-          margin: const EdgeInsets.only(top: 30),
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: MaterialButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeScreen(),
-                  ),
-                );
-              },
-              textColor: Colors.white,
-              child: const Icon(Icons.arrow_back),
-            ),
-          ),
-        ),
-      ),
-    );
-
 //TODO View for displaying the bar to switch camera direction or for registering faces
     stackChildren.add(Positioned(
-      top: size.height - 140,
+      top: size.height - 220,
       left: 0,
       width: size.width,
       height: 80,
@@ -491,6 +463,20 @@ class _HomePageState extends State<LiveRecognition> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
+        appBar: AppBar(
+          title: const Text('Live Recognition'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomeScreen(),
+                ),
+              );
+            },
+          ),
+        ),
         body: Container(
             margin: const EdgeInsets.only(top: 0),
             color: Colors.black,

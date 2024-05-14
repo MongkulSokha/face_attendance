@@ -45,7 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _getProfilePic();
     });
     startLiveDetection();
-
   }
 
   @override
@@ -94,9 +93,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _getCredentials() async {
-    try{
-      DocumentSnapshot doc = await FirebaseFirestore.instance.collection(
-          "Student").doc(User.id).get();
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection("Student")
+          .doc(User.id)
+          .get();
       setState(() {
         User.canEdit = doc['canEdit'];
         User.firstName = doc['firstName'];
@@ -104,13 +105,16 @@ class _HomeScreenState extends State<HomeScreen> {
         User.birthDate = doc['birthDate'];
         User.address = doc['address'];
       });
-    }catch(e){
+    } catch (e) {
       return;
     }
   }
 
   void _getProfilePic() async {
-    DocumentSnapshot doc = await FirebaseFirestore.instance.collection("Student").doc(User.id).get();
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection("Student")
+        .doc(User.id)
+        .get();
     setState(() {
       User.profilePicLink = doc['profilePic'];
     });
@@ -145,14 +149,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    screenHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
-    screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
+    screenHeight = MediaQuery.of(context).size.height;
+    screenWidth = MediaQuery.of(context).size.width;
     if (timeManipulated) {
       return Scaffold(
         appBar: AppBar(
@@ -216,21 +214,22 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Icon(
                                 navigationIcons[i],
-                                color:
-                                i == currentIndex ? primary : Colors.black54,
+                                color: i == currentIndex
+                                    ? primary
+                                    : Colors.black54,
                                 size: i == currentIndex ? 27 : 24,
                               ),
                               i == currentIndex
                                   ? Container(
-                                margin: const EdgeInsets.only(top: 6),
-                                height: 3,
-                                width: 22,
-                                decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(40)),
-                                  color: primary,
-                                ),
-                              )
+                                      margin: const EdgeInsets.only(top: 6),
+                                      height: 3,
+                                      width: 22,
+                                      decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(40)),
+                                        color: primary,
+                                      ),
+                                    )
                                   : const SizedBox(),
                             ],
                           ),
