@@ -16,14 +16,14 @@ import '../ml/recognizer.dart';
 import '../model/user.dart';
 import '../view/homescreen.dart';
 
-class LiveRecognition extends StatefulWidget {
-  const LiveRecognition({Key? key}) : super(key: key);
+class FaceRegister extends StatefulWidget {
+  const FaceRegister({Key? key}) : super(key: key);
 
   @override
-  State<LiveRecognition> createState() => HomePageState();
+  State<FaceRegister> createState() => HomePageState();
 }
 
-class HomePageState extends State<LiveRecognition> {
+class HomePageState extends State<FaceRegister> {
   dynamic controller;
   bool isBusy = false;
   late Size size;
@@ -92,9 +92,9 @@ class HomePageState extends State<LiveRecognition> {
         return;
       }
       controller.startImageStream((image) => {
-            if (!isBusy)
-              {isBusy = true, frame = image, doFaceDetectionOnFrame()}
-          });
+        if (!isBusy)
+          {isBusy = true, frame = image, doFaceDetectionOnFrame()}
+      });
     });
   }
 
@@ -155,27 +155,6 @@ class HomePageState extends State<LiveRecognition> {
       }
       recognitions.add(recognition);
 
-      // Check if face is recognized and perform action
-      if (recognition.name != "Unknown") {
-        if(recognition.name == User.lastName) {
-          // Ensure performActionOnMatch is called only once per face recognition
-          DateTime now = DateTime.now();
-          if (lastActionTime[recognition.name] == null ||
-              now
-                  .difference(lastActionTime[recognition.name]!)
-                  .inSeconds >= 10) { // 10 seconds debounce time
-            lastActionTime[recognition.name] = now;
-            performActionOnMatch(recognition);
-          }
-        } else{
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Wrong Face Detected!"),
-            ),
-          );
-        }
-      }
-
       // Show face registration dialogue if needed
       if (register) {
         showFaceRegistrationDialogue(croppedFace, recognition);
@@ -187,180 +166,6 @@ class HomePageState extends State<LiveRecognition> {
       isBusy = false;
       _scanResults = recognitions;
     });
-  }
-
-  //TODO Define the action to perform when a registered face is
-  Future<void> performActionOnMatch(Recognition recognition) async {
-    if (User.lat != 0) {
-      // Fetch student record
-      QuerySnapshot snap = await FirebaseFirestore.instance
-          .collection("Student")
-          .where('id', isEqualTo: User.studentId)
-          .get();
-
-      String recordId = DateFormat('dd MMMM yy').format(DateTime.now());
-
-      // Fetch existing check-in/check-out times
-      DocumentSnapshot snap2 = await FirebaseFirestore.instance
-          .collection("Student")
-          .doc(snap.docs[0].id)
-          .collection("Record")
-          .doc(recordId)
-          .get();
-
-      try {
-        // Check if check-in exists
-        String currentCheckIn = snap2['checkIn'];
-        if (currentCheckIn != "--/--") {
-          // If check-in exists, update check-out
-          setState(() {
-            checkOut = DateFormat('hh:mm').format(DateTime.now());
-          });
-          await FirebaseFirestore.instance
-              .collection("Student")
-              .doc(snap.docs[0].id)
-              .collection("Record")
-              .doc(recordId)
-              .update({
-            'date': Timestamp.now(),
-            'checkIn': currentCheckIn,
-            'checkOut': checkOut,
-            'checkOutLocation': location,
-          });
-        } else {
-          // If check-in does not exist, set check-in
-          setState(() {
-            checkIn = DateFormat('hh:mm').format(DateTime.now());
-          });
-          await FirebaseFirestore.instance
-              .collection("Student")
-              .doc(snap.docs[0].id)
-              .collection("Record")
-              .doc(recordId)
-              .set({
-            'date': Timestamp.now(),
-            'checkIn': checkIn,
-            'checkOut': "--/--",
-            'checkInLocation': location,
-          });
-        }
-      } catch (e) {
-        // If no record exists, set check-in
-        setState(() {
-          checkIn = DateFormat('hh:mm').format(DateTime.now());
-        });
-        await FirebaseFirestore.instance
-            .collection("Student")
-            .doc(snap.docs[0].id)
-            .collection("Record")
-            .doc(recordId)
-            .set({
-          'date': Timestamp.now(),
-          'checkIn': checkIn,
-          'checkOut': "--/--",
-          'checkInLocation': location,
-        });
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Done!"),
-        ),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
-        ),
-      );
-    } else {
-      Timer(
-        const Duration(seconds: 3),
-            () async {
-          // Fetch student record
-          QuerySnapshot snap = await FirebaseFirestore.instance
-              .collection("Student")
-              .where('id', isEqualTo: User.studentId)
-              .get();
-
-          String recordId = DateFormat('dd MMMM yy').format(DateTime.now());
-
-          // Fetch existing check-in/check-out times
-          DocumentSnapshot snap2 = await FirebaseFirestore.instance
-              .collection("Student")
-              .doc(snap.docs[0].id)
-              .collection("Record")
-              .doc(recordId)
-              .get();
-
-          try {
-            // Check if check-in exists
-            String currentCheckIn = snap2['checkIn'];
-            if (currentCheckIn != "--/--") {
-              // If check-in exists, update check-out
-              setState(() {
-                checkOut = DateFormat('hh:mm').format(DateTime.now());
-              });
-              await FirebaseFirestore.instance
-                  .collection("Student")
-                  .doc(snap.docs[0].id)
-                  .collection("Record")
-                  .doc(recordId)
-                  .update({
-                'date': Timestamp.now(),
-                'checkIn': currentCheckIn,
-                'checkOut': checkOut,
-                'checkOutLocation': location,
-              });
-            } else {
-              // If check-in does not exist, set check-in
-              setState(() {
-                checkIn = DateFormat('hh:mm').format(DateTime.now());
-              });
-              await FirebaseFirestore.instance
-                  .collection("Student")
-                  .doc(snap.docs[0].id)
-                  .collection("Record")
-                  .doc(recordId)
-                  .set({
-                'date': Timestamp.now(),
-                'checkIn': checkIn,
-                'checkOut': "--/--",
-                'checkInLocation': location,
-              });
-            }
-          } catch (e) {
-            // If no record exists, set check-in
-            setState(() {
-              checkIn = DateFormat('hh:mm').format(DateTime.now());
-            });
-            await FirebaseFirestore.instance
-                .collection("Student")
-                .doc(snap.docs[0].id)
-                .collection("Record")
-                .doc(recordId)
-                .set({
-              'date': Timestamp.now(),
-              'checkIn': checkIn,
-              'checkOut': "--/--",
-              'checkInLocation': location,
-            });
-          }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Done!"),
-            ),
-          );
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ),
-          );
-        },
-      );
-    }
   }
 
 //TODO Face Registration Dialogue
@@ -513,9 +318,9 @@ class HomePageState extends State<LiveRecognition> {
     b = b.clamp(0, 255);
 
     return 0xff000000 |
-        ((b << 16) & 0xff0000) |
-        ((g << 8) & 0xff00) |
-        (r & 0xff);
+    ((b << 16) & 0xff0000) |
+    ((g << 8) & 0xff00) |
+    (r & 0xff);
   }
 
   final _orientations = {
@@ -528,7 +333,7 @@ class HomePageState extends State<LiveRecognition> {
 //TODO convert CameraImage to InputImage
   InputImage? getInputImage() {
     final camera =
-        camDirect == CameraLensDirection.front ? cameras[1] : cameras[0];
+    camDirect == CameraLensDirection.front ? cameras[1] : cameras[0];
     final sensorOrientation = camera.sensorOrientation;
 
     InputImageRotation? rotation;
@@ -536,7 +341,7 @@ class HomePageState extends State<LiveRecognition> {
       rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
     } else if (Platform.isAndroid) {
       var rotationCompensation =
-          _orientations[controller!.value.deviceOrientation];
+      _orientations[controller!.value.deviceOrientation];
       if (rotationCompensation == null) return null;
       if (camera.lensDirection == CameraLensDirection.front) {
 // front-facing
@@ -580,7 +385,7 @@ class HomePageState extends State<LiveRecognition> {
       controller.value.previewSize!.width,
     );
     CustomPainter painter =
-        FaceDetectorPainter(imageSize, _scanResults, camDirect);
+    FaceDetectorPainter(imageSize, _scanResults, camDirect);
     return CustomPaint(
       painter: painter,
     );
@@ -608,7 +413,7 @@ class HomePageState extends State<LiveRecognition> {
     List<Widget> stackChildren = [];
     size = MediaQuery.of(context).size;
     if (controller != null) {
-      //TODO View for displaying the live camera footage
+//TODO View for displaying the live camera footage
       stackChildren.add(
         Positioned(
           top: 0.0,
@@ -618,15 +423,15 @@ class HomePageState extends State<LiveRecognition> {
           child: Container(
             child: (controller.value.isInitialized)
                 ? AspectRatio(
-                    aspectRatio: controller.value.aspectRatio,
-                    child: CameraPreview(controller),
-                  )
+              aspectRatio: controller.value.aspectRatio,
+              child: CameraPreview(controller),
+            )
                 : Container(),
           ),
         ),
       );
 
-      //TODO View for displaying rectangles around detected aces
+//TODO View for displaying rectangles around detected aces
       stackChildren.add(
         Positioned(
             top: 0.0,
@@ -637,63 +442,63 @@ class HomePageState extends State<LiveRecognition> {
       );
     }
 
-    //TODO View for displaying the bar to switch camera direction or for registering faces
-//     stackChildren.add(Positioned(
-//       top: size.height - 220,
-//       left: 0,
-//       width: size.width,
-//       height: 80,
-//       child: Card(
-//         margin: const EdgeInsets.only(left: 20, right: 20),
-//         color: Colors.blue,
-//         child: Center(
-//           child: Column(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             crossAxisAlignment: CrossAxisAlignment.center,
-//             children: [
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//                 children: [
-//                   IconButton(
-//                     icon: const Icon(
-//                       Icons.cached,
-//                       color: Colors.white,
-//                     ),
-//                     iconSize: 40,
-//                     color: Colors.black,
-//                     onPressed: () {
-//                       _toggleCameraDirection();
-//                     },
-//                   ),
-//                   Container(
-//                     width: 30,
-//                   ),
-//                   IconButton(
-//                     icon: const Icon(
-//                       Icons.face_retouching_natural,
-//                       color: Colors.white,
-//                     ),
-//                     iconSize: 40,
-//                     color: Colors.black,
-//                     onPressed: () {
-//                       setState(() {
-//                         register = true;
-//                       });
-//                     },
-//                   )
-//                 ],
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     ));
+//TODO View for displaying the bar to switch camera direction or for registering faces
+    stackChildren.add(Positioned(
+      top: size.height - 220,
+      left: 0,
+      width: size.width,
+      height: 80,
+      child: Card(
+        margin: const EdgeInsets.only(left: 20, right: 20),
+        color: Colors.blue,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.cached,
+                      color: Colors.white,
+                    ),
+                    iconSize: 40,
+                    color: Colors.black,
+                    onPressed: () {
+                      _toggleCameraDirection();
+                    },
+                  ),
+                  Container(
+                    width: 30,
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.face_retouching_natural,
+                      color: Colors.white,
+                    ),
+                    iconSize: 40,
+                    color: Colors.black,
+                    onPressed: () {
+                      setState(() {
+                        register = true;
+                      });
+                    },
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ));
 
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: const Text('Live Recognition'),
+          title: const Text('Face Register'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:face_attendance/recognition/face_register.dart';
 import 'package:face_attendance/recognition/live_face_recognition.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -287,10 +288,10 @@ class _TodayScreenState extends State<TodayScreen> {
                     Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const LiveRecognition()));
+                            builder: (context) => const FaceRegister()));
                   },
                   child: Text(
-                    "Live Recognition",
+                    "Face Register",
                     style: TextStyle(
                       color: Colors.blue,
                       fontSize: screenWidth / 20,

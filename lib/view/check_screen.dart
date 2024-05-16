@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:face_attendance/recognition/live_face_recognition.dart';
 import 'package:face_attendance/view/circle_geofence.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -25,7 +26,8 @@ class _CheckScreenState extends State<CheckScreen> {
   final Completer<GoogleMapController> _controller = Completer();
   BitmapDescriptor markerBitmap = BitmapDescriptor.defaultMarker;
 
-  LatLng initialLocation = const LatLng(11.524947, 104.884168);
+  LatLng initialLocation = const LatLng(11.548171, 104.926266);
+  // LatLng initialLocation = const LatLng(11.524947, 104.884168);
 
   bool isInSelectedArea = true;
 
@@ -272,141 +274,147 @@ class _CheckScreenState extends State<CheckScreen> {
                               innerColor: primary,
                               key: key,
                               onSubmit: () async {
-                                if (User.lat != 0) {
-                                  // _getLocation();
-                                  Future.delayed(
-                                      const Duration(milliseconds: 500), () {
-                                    key.currentState!.reset();
-                                  });
-
-                                  QuerySnapshot snap = await FirebaseFirestore
-                                      .instance
-                                      .collection("Student")
-                                      .where('id', isEqualTo: User.studentId)
-                                      .get();
-
-                                  DocumentSnapshot snap2 =
-                                      await FirebaseFirestore.instance
-                                          .collection("Student")
-                                          .doc(snap.docs[0].id)
-                                          .collection("Record")
-                                          .doc(DateFormat('dd MMMM yy')
-                                              .format(DateTime.now()))
-                                          .get();
-
-                                  try {
-                                    String checkIn = snap2['checkIn'];
-
-                                    setState(() {
-                                      checkOut = DateFormat('hh:mm')
-                                          .format(DateTime.now());
-                                    });
-
-                                    await FirebaseFirestore.instance
-                                        .collection("Student")
-                                        .doc(snap.docs[0].id)
-                                        .collection("Record")
-                                        .doc(DateFormat('dd MMMM yy')
-                                            .format(DateTime.now()))
-                                        .update({
-                                      'date': Timestamp.now(),
-                                      'checkIn': checkIn,
-                                      'checkOut': DateFormat('hh:mm')
-                                          .format(DateTime.now()),
-                                      'checkOutLocation': location,
-                                    });
-                                  } catch (e) {
-                                    setState(() {
-                                      checkIn = DateFormat('hh:mm')
-                                          .format(DateTime.now());
-                                    });
-                                    await FirebaseFirestore.instance
-                                        .collection("Student")
-                                        .doc(snap.docs[0].id)
-                                        .collection("Record")
-                                        .doc(DateFormat('dd MMMM yy')
-                                            .format(DateTime.now()))
-                                        .set({
-                                      'date': Timestamp.now(),
-                                      'checkIn': DateFormat('hh:mm')
-                                          .format(DateTime.now()),
-                                      'checkOut': "--/--",
-                                      'checkInLocation': location,
-                                    });
-                                  }
-                                  key.currentState!.reset();
-                                } else {
-                                  Timer(
-                                    const Duration(seconds: 3),
-                                    () async {
-                                      // _getLocation();
-
-                                      Future.delayed(
-                                          const Duration(milliseconds: 500),
-                                          () {
-                                        key.currentState!.reset();
-                                      });
-
-                                      QuerySnapshot snap =
-                                          await FirebaseFirestore.instance
-                                              .collection("Student")
-                                              .where('id',
-                                                  isEqualTo: User.studentId)
-                                              .get();
-
-                                      DocumentSnapshot snap2 =
-                                          await FirebaseFirestore.instance
-                                              .collection("Student")
-                                              .doc(snap.docs[0].id)
-                                              .collection("Record")
-                                              .doc(DateFormat('dd MMMM yy')
-                                                  .format(DateTime.now()))
-                                              .get();
-
-                                      try {
-                                        String checkIn = snap2['checkIn'];
-
-                                        setState(() {
-                                          checkOut = DateFormat('hh:mm')
-                                              .format(DateTime.now());
-                                        });
-
-                                        await FirebaseFirestore.instance
-                                            .collection("Student")
-                                            .doc(snap.docs[0].id)
-                                            .collection("Record")
-                                            .doc(DateFormat('dd MMMM yy')
-                                                .format(DateTime.now()))
-                                            .update({
-                                          'date': Timestamp.now(),
-                                          'checkIn': checkIn,
-                                          'checkOut': DateFormat('hh:mm')
-                                              .format(DateTime.now()),
-                                          'checkOutLocation': location,
-                                        });
-                                      } catch (e) {
-                                        setState(() {
-                                          checkIn = DateFormat('hh:mm')
-                                              .format(DateTime.now());
-                                        });
-                                        await FirebaseFirestore.instance
-                                            .collection("Student")
-                                            .doc(snap.docs[0].id)
-                                            .collection("Record")
-                                            .doc(DateFormat('dd MMMM yy')
-                                                .format(DateTime.now()))
-                                            .set({
-                                          'date': Timestamp.now(),
-                                          'checkIn': DateFormat('hh:mm')
-                                              .format(DateTime.now()),
-                                          'checkOut': "--/--",
-                                          'checkInLocation': location,
-                                        });
-                                      }
-                                      key.currentState!.reset();
-                                    },
-                                  );
-                                }
+                                // if (User.lat != 0) {
+                                //   // _getLocation();
+                                //   Future.delayed(
+                                //       const Duration(milliseconds: 500), () {
+                                //     key.currentState!.reset();
+                                //   });
+                                //
+                                //   QuerySnapshot snap = await FirebaseFirestore
+                                //       .instance
+                                //       .collection("Student")
+                                //       .where('id', isEqualTo: User.studentId)
+                                //       .get();
+                                //
+                                //   DocumentSnapshot snap2 =
+                                //       await FirebaseFirestore.instance
+                                //           .collection("Student")
+                                //           .doc(snap.docs[0].id)
+                                //           .collection("Record")
+                                //           .doc(DateFormat('dd MMMM yy')
+                                //               .format(DateTime.now()))
+                                //           .get();
+                                //
+                                //   try {
+                                //     String checkIn = snap2['checkIn'];
+                                //
+                                //     setState(() {
+                                //       checkOut = DateFormat('hh:mm')
+                                //           .format(DateTime.now());
+                                //     });
+                                //
+                                //     await FirebaseFirestore.instance
+                                //         .collection("Student")
+                                //         .doc(snap.docs[0].id)
+                                //         .collection("Record")
+                                //         .doc(DateFormat('dd MMMM yy')
+                                //             .format(DateTime.now()))
+                                //         .update({
+                                //       'date': Timestamp.now(),
+                                //       'checkIn': checkIn,
+                                //       'checkOut': DateFormat('hh:mm')
+                                //           .format(DateTime.now()),
+                                //       'checkOutLocation': location,
+                                //     });
+                                //   } catch (e) {
+                                //     setState(() {
+                                //       checkIn = DateFormat('hh:mm')
+                                //           .format(DateTime.now());
+                                //     });
+                                //     await FirebaseFirestore.instance
+                                //         .collection("Student")
+                                //         .doc(snap.docs[0].id)
+                                //         .collection("Record")
+                                //         .doc(DateFormat('dd MMMM yy')
+                                //             .format(DateTime.now()))
+                                //         .set({
+                                //       'date': Timestamp.now(),
+                                //       'checkIn': DateFormat('hh:mm')
+                                //           .format(DateTime.now()),
+                                //       'checkOut': "--/--",
+                                //       'checkInLocation': location,
+                                //     });
+                                //   }
+                                //   key.currentState!.reset();
+                                // } else {
+                                //   Timer(
+                                //     const Duration(seconds: 3),
+                                //     () async {
+                                //       // _getLocation();
+                                //
+                                //       Future.delayed(
+                                //           const Duration(milliseconds: 500),
+                                //           () {
+                                //         key.currentState!.reset();
+                                //       });
+                                //
+                                //       QuerySnapshot snap =
+                                //           await FirebaseFirestore.instance
+                                //               .collection("Student")
+                                //               .where('id',
+                                //                   isEqualTo: User.studentId)
+                                //               .get();
+                                //
+                                //       DocumentSnapshot snap2 =
+                                //           await FirebaseFirestore.instance
+                                //               .collection("Student")
+                                //               .doc(snap.docs[0].id)
+                                //               .collection("Record")
+                                //               .doc(DateFormat('dd MMMM yy')
+                                //                   .format(DateTime.now()))
+                                //               .get();
+                                //
+                                //       try {
+                                //         String checkIn = snap2['checkIn'];
+                                //
+                                //         setState(() {
+                                //           checkOut = DateFormat('hh:mm')
+                                //               .format(DateTime.now());
+                                //         });
+                                //
+                                //         await FirebaseFirestore.instance
+                                //             .collection("Student")
+                                //             .doc(snap.docs[0].id)
+                                //             .collection("Record")
+                                //             .doc(DateFormat('dd MMMM yy')
+                                //                 .format(DateTime.now()))
+                                //             .update({
+                                //           'date': Timestamp.now(),
+                                //           'checkIn': checkIn,
+                                //           'checkOut': DateFormat('hh:mm')
+                                //               .format(DateTime.now()),
+                                //           'checkOutLocation': location,
+                                //         });
+                                //       } catch (e) {
+                                //         setState(() {
+                                //           checkIn = DateFormat('hh:mm')
+                                //               .format(DateTime.now());
+                                //         });
+                                //         await FirebaseFirestore.instance
+                                //             .collection("Student")
+                                //             .doc(snap.docs[0].id)
+                                //             .collection("Record")
+                                //             .doc(DateFormat('dd MMMM yy')
+                                //                 .format(DateTime.now()))
+                                //             .set({
+                                //           'date': Timestamp.now(),
+                                //           'checkIn': DateFormat('hh:mm')
+                                //               .format(DateTime.now()),
+                                //           'checkOut': "--/--",
+                                //           'checkInLocation': location,
+                                //         });
+                                //       }
+                                //       key.currentState!.reset();
+                                //     },
+                                //   );
+                                // }
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const LiveRecognition(),
+                                  ),
+                                );
                               },
                             );
                           },

@@ -24,10 +24,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   late SharedPreferences sharedPreferences;
 
+  bool isPasswordVisible = false;
+
   @override
   Widget build(BuildContext context) {
     final bool isKeyboardVisible =
-        KeyboardVisibilityProvider.isKeyboardVisible(context);
+    KeyboardVisibilityProvider.isKeyboardVisible(context);
     screenHeight = MediaQuery.of(context).size.height;
     screenWidth = MediaQuery.of(context).size.width;
 
@@ -38,25 +40,25 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             isKeyboardVisible
                 ? SizedBox(
-                    height: screenHeight / 16,
-                  )
+              height: screenHeight / 16,
+            )
                 : Container(
-                    height: screenHeight / 3,
-                    width: screenWidth,
-                    decoration: BoxDecoration(
-                      color: primary,
-                      borderRadius: const BorderRadius.only(
-                        bottomRight: Radius.circular(50),
-                      ),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: screenWidth / 5,
-                      ),
-                    ),
-                  ),
+              height: screenHeight / 3,
+              width: screenWidth,
+              decoration: BoxDecoration(
+                color: primary,
+                borderRadius: const BorderRadius.only(
+                  bottomRight: Radius.circular(50),
+                ),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.person,
+                  color: Colors.white,
+                  size: screenWidth / 5,
+                ),
+              ),
+            ),
             Container(
               margin: EdgeInsets.only(
                   top: screenHeight / 30, bottom: screenHeight / 30),
@@ -104,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             sharedPreferences.setString('studentId', id).then((_) {
                               Navigator.pushReplacement(context, MaterialPageRoute(
-                                      builder: (context) => const HomeScreen())
+                                  builder: (context) => const HomeScreen())
                               );
                             });
                           } else {
@@ -138,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: BoxDecoration(
                           color: primary,
                           borderRadius:
-                              const BorderRadius.all(Radius.circular(30))),
+                          const BorderRadius.all(Radius.circular(30))),
                       child: Center(
                         child: Text(
                           "LOGIN",
@@ -205,9 +207,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   border: InputBorder.none,
                   hintText: hint,
+                  suffixIcon: obscure ? IconButton(
+                    icon: Icon(
+                      isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      color: primary,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        isPasswordVisible = !isPasswordVisible;
+                      });
+                    },
+                  ) : null,
                 ),
                 maxLines: 1,
-                obscureText: obscure,
+                obscureText: obscure && !isPasswordVisible,
               ),
             ),
           )
