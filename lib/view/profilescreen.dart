@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import '../model/user.dart';
+import '../recognition/face_register.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -28,19 +29,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _refresh(); // Initial data load
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _refresh(); // Reload data when dependencies change (e.g., when the screen becomes active)
   }
 
   Future<void> _refresh() async {
     // Simulate fetching updated data
-    await Future.delayed(
-        const Duration(seconds: 2)); // Simulating a delay of 1 second
+    await Future.delayed(const Duration(seconds: 2)); // Simulating a delay of 2 seconds
 
-    // Update the _month variable with the current month
+    // Fetch updated data from Firestore
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection("Student").doc(User.id).get();
+    Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+
+    // Update the User model with the fetched data
     setState(() {
-      User.firstName;
-      User.lastName;
-      User.birthDate;
-      User.address;
+      User.firstName = userData['firstName'];
+      User.lastName = userData['lastName'];
+      User.birthDate = userData['birthDate'];
+      User.address = userData['address'];
+      User.profilePicLink = userData['profilePic'];
+      User.canEdit = userData['canEdit'];
+      birth = User.birthDate; // Update birth with the fetched birthDate
     });
   }
 
@@ -100,14 +114,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Center(
                       child: User.profilePicLink == " "
                           ? const Icon(
-                              Icons.person,
-                              color: Colors.white,
-                              size: 80,
-                            )
+                        Icons.person,
+                        color: Colors.white,
+                        size: 80,
+                      )
                           : ClipRRect(
-                              borderRadius: BorderRadius.circular(20),
-                              child: Image.network(User.profilePicLink),
-                            ),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.network(User.profilePicLink),
+                      ),
                     ),
                   ),
                 ),
@@ -125,124 +139,145 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   height: 24,
                 ),
                 User.canEdit
-                    ? textField("First Name", "First name", firstNameController)
+                    ? textField("First Name", User.firstName, firstNameController)
                     : field("First Name", User.firstName),
                 User.canEdit
-                    ? textField("Last Name", "Last name", lastNameController)
+                    ? textField("Last Name", User.lastName, lastNameController)
                     : field("Last Name", User.lastName),
                 User.canEdit
                     ? GestureDetector(
-                        onTap: () {
-                          showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(1950),
-                            lastDate: DateTime.now(),
-                            builder: (context, child) {
-                              return Theme(
-                                data: Theme.of(context).copyWith(
-                                  colorScheme: ColorScheme.light(
-                                    primary: primary,
-                                    secondary: primary,
-                                    onSecondary: Colors.white,
-                                  ),
-                                  textButtonTheme: TextButtonThemeData(
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: primary,
-                                    ),
-                                  ),
-                                  textTheme: const TextTheme(
-                                    headlineMedium: TextStyle(
-                                      fontFamily: "NexaBold",
-                                    ),
-                                    labelSmall: TextStyle(
-                                      fontFamily: "NexaBold",
-                                    ),
-                                    labelLarge: TextStyle(
-                                      fontFamily: "NexaBold",
-                                    ),
-                                  ),
+                    onTap: () {
+                      showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(1950),
+                        lastDate: DateTime.now(),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: ColorScheme.light(
+                                primary: primary,
+                                secondary: primary,
+                                onSecondary: Colors.white,
+                              ),
+                              textButtonTheme: TextButtonThemeData(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: primary,
                                 ),
-                                child: child!,
-                              );
-                            },
-                          ).then((value) {
-                            setState(() {
-                              birth = DateFormat("MM/dd/yyyy").format(value!);
-                            });
-                          });
+                              ),
+                              textTheme: const TextTheme(
+                                headlineMedium: TextStyle(
+                                  fontFamily: "NexaBold",
+                                ),
+                                labelSmall: TextStyle(
+                                  fontFamily: "NexaBold",
+                                ),
+                                labelLarge: TextStyle(
+                                  fontFamily: "NexaBold",
+                                ),
+                              ),
+                            ),
+                            child: child!,
+                          );
                         },
-                        child: field("Date of Birth", birth))
+                      ).then((value) {
+                        setState(() {
+                          birth = DateFormat("MM/dd/yyyy").format(value!);
+                        });
+                      });
+                    },
+                    child: field("Date of Birth", birth))
                     : field("Date of Birth", User.birthDate),
                 User.canEdit
-                    ? textField("Address", "Address", addressController)
+                    ? textField("Address", User.address, addressController)
                     : field("Address", User.address),
                 User.canEdit
                     ? GestureDetector(
-                        onTap: () async {
-                          String firstName = firstNameController.text;
-                          String lastName = lastNameController.text;
-                          String birthDate = birth;
-                          String address = addressController.text;
+                  onTap: () async {
+                    String firstName = firstNameController.text;
+                    String lastName = lastNameController.text;
+                    String birthDate = birth;
+                    String address = addressController.text;
 
-                          if (User.canEdit) {
-                            if (firstName.isEmpty) {
-                              showSnakeBar("Please enter your first name!");
-                            } else if (firstName.isEmpty) {
-                              showSnakeBar("Please enter your last name!");
-                            } else if (birthDate.isEmpty) {
-                              showSnakeBar("Please enter your birth date!");
-                            } else if (address.isEmpty) {
-                              showSnakeBar("Please enter your address!");
-                            } else {
-                              await FirebaseFirestore.instance
-                                  .collection("Student")
-                                  .doc(User.id)
-                                  .update({
-                                'firstName': firstName,
-                                'lastName': lastName,
-                                'birthDate': birthDate,
-                                'address': address,
-                                'canEdit': false,
-                              }).then((value) {
-                                setState(() {
-                                  User.canEdit = false;
-                                  User.firstName = firstName;
-                                  User.lastName = lastName;
-                                  User.birthDate = birthDate;
-                                  User.address = address;
-                                });
-                              });
-                            }
-                          } else {
-                            showSnakeBar(
-                                "Please can't edit anymore, please contact support team.");
-                          }
-                        },
-                        child: Container(
-                          height: kToolbarHeight,
-                          width: screenWidth,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.only(left: 11),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            color: primary,
-                          ),
-                          child: const Center(
-                            child: Text(
-                              "SAVE",
-                              style: TextStyle(
-                                fontFamily: "NexaBold",
-                                color: Colors.white,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ),
+                    if (User.canEdit) {
+                      if (firstName.isEmpty) {
+                        showSnakeBar("Please enter your first name!");
+                      } else if (lastName.isEmpty) {
+                        showSnakeBar("Please enter your last name!");
+                      } else if (birthDate.isEmpty) {
+                        showSnakeBar("Please enter your birth date!");
+                      } else if (address.isEmpty) {
+                        showSnakeBar("Please enter your address!");
+                      } else {
+                        await FirebaseFirestore.instance
+                            .collection("Student")
+                            .doc(User.id)
+                            .update({
+                          'firstName': firstName,
+                          'lastName': lastName,
+                          'birthDate': birthDate,
+                          'address': address,
+                          'canEdit': false,
+                        }).then((value) {
+                          setState(() {
+                            User.canEdit = false;
+                            User.firstName = firstName;
+                            User.lastName = lastName;
+                            User.birthDate = birthDate;
+                            User.address = address;
+                          });
+                        });
+                      }
+                    } else {
+                      showSnakeBar(
+                          "Please can't edit anymore, please contact support team.");
+                    }
+                  },
+                  child: Container(
+                    height: kToolbarHeight,
+                    width: screenWidth,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(left: 11),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: primary,
+                    ),
+                    child: const Center(
+                      child: Text(
+                        "SAVE",
+                        style: TextStyle(
+                          fontFamily: "NexaBold",
+                          color: Colors.white,
+                          fontSize: 18,
                         ),
-                      )
+                      ),
+                    ),
+                  ),
+                )
                     : const SizedBox(),
               ],
             ),
+            User.canEdit
+                ? Container(
+              margin: const EdgeInsets.only(top: 30),
+              alignment: Alignment.center,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const FaceRegister()));
+                },
+                child: Text(
+                  "Face Register",
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: screenWidth / 20,
+                    fontFamily: "NexaBold",
+                  ),
+                ),
+              ),
+            ): SizedBox(),
           ],
         ),
       ),
@@ -320,8 +355,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 focusedBorder: const OutlineInputBorder(
                     borderSide: BorderSide(
-                  color: Colors.black54,
-                ))),
+                      color: Colors.black54,
+                    ))),
           ),
         ),
       ],

@@ -26,12 +26,7 @@ class _CheckScreenState extends State<CheckScreen> {
   final Completer<GoogleMapController> _controller = Completer();
   BitmapDescriptor markerBitmap = BitmapDescriptor.defaultMarker;
 
-  LatLng initialLocation = const LatLng(11.548171, 104.926266);
-  // LatLng initialLocation = const LatLng(11.524947, 104.884168);
-
-  bool isInSelectedArea = true;
-
-  String location = " ";
+  bool isInSelectedArea = false;
 
   double screenHeight = 0;
   double screenWidth = 0;
@@ -45,10 +40,13 @@ class _CheckScreenState extends State<CheckScreen> {
 
   late SharedPreferences sharedPreferences;
 
+  List<Map<String, dynamic>> geofenceAreas = [];
+  double circleRadius = 25.0; // Define the radius of the circle in meters
+
   @override
   void initState() {
     super.initState();
-    fetchSelectedLocationFromFirestore();
+    fetchSelectedLocationsFromFirestore();
     getCurrentLocation();
     _getRecord();
   }
@@ -79,12 +77,11 @@ class _CheckScreenState extends State<CheckScreen> {
     }
   }
 
-  double circleRadius = 50.0; // Define the radius of the circle in meters
-
   Future<void> getCurrentLocation() async {
     Location location = Location();
     bool serviceEnabled;
     PermissionStatus permissionGranted;
+
     serviceEnabled = await location.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
@@ -102,7 +99,7 @@ class _CheckScreenState extends State<CheckScreen> {
     }
 
     location.onLocationChanged.listen(
-      (newLoc) async {
+          (newLoc) async {
         setState(() {
           currentLocation = newLoc;
           isInSelectedArea = isLocationInsideSelectedArea(
@@ -124,41 +121,45 @@ class _CheckScreenState extends State<CheckScreen> {
     );
   }
 
-  Future<void> fetchSelectedLocationFromFirestore() async {
+  Future<void> fetchSelectedLocationsFromFirestore() async {
     try {
-      // Retrieve selected location from Firestore
-      DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-          .collection('selected_location')
-          .doc('location')
+      // Retrieve selected locations from Firestore
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('locations')
           .get();
-      if (documentSnapshot.exists) {
-        // Check if the data exists
-        Map<String, dynamic>? data = documentSnapshot.data()
-            as Map<String, dynamic>?; // Cast data to Map
-        if (data != null) {
-          double latitude =
-              data['latitude'] as double; // Access latitude property
-          double longitude =
-              data['longitude'] as double; // Access longitude property
-          setState(() {
-            initialLocation = LatLng(latitude, longitude);
-          });
-        }
+
+      List<Map<String, dynamic>> fetchedGeofenceAreas = [];
+      for (var doc in querySnapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        double latitude = data['latitude'];
+        double longitude = data['longitude'];
+        double radius = circleRadius;
+        fetchedGeofenceAreas.add({
+          'latitude': latitude,
+          'longitude': longitude,
+          'radius': radius,
+        });
       }
+
+      setState(() {
+        geofenceAreas = fetchedGeofenceAreas;
+      });
     } catch (e) {
-      // ignore: avoid_print
-      print('Error fetching selected location: $e');
+      print('Error fetching selected locations: $e');
     }
   }
 
   bool isLocationInsideSelectedArea(LatLng location) {
-    // Calculate the distance between the current location and the center of the circle
-    num distance = maps_tool.SphericalUtil.computeDistanceBetween(
-      maps_tool.LatLng(location.latitude, location.longitude),
-      maps_tool.LatLng(initialLocation.latitude, initialLocation.longitude),
-    );
-    return distance <=
-        circleRadius; // Check if the distance is within the radius
+    for (var area in geofenceAreas) {
+      num distance = maps_tool.SphericalUtil.computeDistanceBetween(
+        maps_tool.LatLng(location.latitude, location.longitude),
+        maps_tool.LatLng(area['latitude'], area['longitude']),
+      );
+      if (distance <= area['radius']) {
+        return true;
+      }
+    }
+    return false;
   }
 
   void addCustomMarker() async {
@@ -194,258 +195,91 @@ class _CheckScreenState extends State<CheckScreen> {
       ),
       body: currentLocation == null
           ? const Center(
-              child: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.center, // Center vertically
-                children: [
-                  Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ],
+        child: CircularProgressIndicator(),
+      )
+          : Column(
+        children: [
+          Expanded(
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: LatLng(currentLocation!.latitude!,
+                    currentLocation!.longitude!),
+                zoom: 18,
+              ),
+              onMapCreated: (controller) {
+                _controller.complete(controller);
+              },
+              markers: {
+                Marker(
+                  icon: markerBitmap,
+                  markerId: const MarkerId("marker"),
+                  position: LatLng(currentLocation!.latitude!,
+                      currentLocation!.longitude!),
+                  draggable: true,
+                ),
+              },
+              circles: geofenceAreas.map((area) {
+                return Circle(
+                  circleId: CircleId(area.toString()),
+                  center: LatLng(area['latitude'], area['longitude']),
+                  radius: area['radius'],
+                  fillColor: const Color(0xff1d83ec).withOpacity(0.1),
+                  strokeWidth: 1,
+                  strokeColor: Colors.blue,
+                );
+              }).toSet(),
+            ),
+          ),
+          if (isInSelectedArea)
+            checkOut == "--/--"
+                ? Container(
+              margin: const EdgeInsets.all(20.0),
+              child: Builder(
+                builder: (context) {
+                  final GlobalKey<SlideActionState> key = GlobalKey();
+
+                  return SlideAction(
+                    sliderButtonIcon: const Icon(
+                      FontAwesomeIcons.arrowRight,
+                      color: Colors.white,
+                    ),
+                    submittedIcon: Icon(
+                      FontAwesomeIcons.check,
+                      color: primary,
+                    ),
+                    text: checkIn == "--/--"
+                        ? "Slide to Check In"
+                        : "Slide to Check Out",
+                    textStyle: TextStyle(
+                      color: Colors.black54,
+                      fontFamily: "NexaRegular",
+                      fontSize: screenWidth / 20,
+                    ),
+                    outerColor: Colors.white,
+                    innerColor: primary,
+                    key: key,
+                    onSubmit: () async {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                          const LiveRecognition(),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             )
-          : Column(
-              children: [
-                Expanded(
-                  child: GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(currentLocation!.latitude!,
-                          currentLocation!.longitude!),
-                      zoom: 18,
-                    ),
-                    onMapCreated: (controller) {
-                      _controller.complete(controller);
-                    },
-                    markers: {
-                      Marker(
-                        icon: markerBitmap,
-                        markerId: const MarkerId("marker"),
-                        position: LatLng(currentLocation!.latitude!,
-                            currentLocation!.longitude!),
-                        draggable: true,
-                        onDragEnd: (LatLng updatedLatLng) {
-                          setState(() {
-                            initialLocation = updatedLatLng;
-                            isInSelectedArea =
-                                isLocationInsideSelectedArea(updatedLatLng);
-                          });
-                        },
-                      ),
-                    },
-                    circles: {
-                      Circle(
-                        circleId: const CircleId("1"),
-                        center: LatLng(initialLocation.latitude,
-                            initialLocation.longitude),
-                        radius: circleRadius,
-                        fillColor: const Color(0xff1d83ec).withOpacity(0.1),
-                        strokeWidth: 1,
-                        strokeColor: Colors.blue,
-                      )
-                    },
-                  ),
-                ),
-                isInSelectedArea
-                    ? checkOut == "--/--" ? Container(
-                        margin: const EdgeInsets.only(
-                            top: 44, bottom: 10, right: 30, left: 30),
-                        child: Builder(
-                          builder: (context) {
-                            final GlobalKey<SlideActionState> key = GlobalKey();
-
-                            return SlideAction(
-                              sliderButtonIcon: const Icon(
-                                FontAwesomeIcons.arrowRight,
-                                color: Colors.white,
-                              ),
-                              submittedIcon: Icon(
-                                FontAwesomeIcons.check,
-                                color: primary,
-                              ),
-                              text: checkIn == "--/--"
-                                  ? "Slide to Check In"
-                                  : "Slide to Check Out",
-                              textStyle: TextStyle(
-                                color: Colors.black54,
-                                fontFamily: "NexaRegular",
-                                fontSize: screenWidth / 20,
-                              ),
-                              outerColor: Colors.white,
-                              innerColor: primary,
-                              key: key,
-                              onSubmit: () async {
-                                // if (User.lat != 0) {
-                                //   // _getLocation();
-                                //   Future.delayed(
-                                //       const Duration(milliseconds: 500), () {
-                                //     key.currentState!.reset();
-                                //   });
-                                //
-                                //   QuerySnapshot snap = await FirebaseFirestore
-                                //       .instance
-                                //       .collection("Student")
-                                //       .where('id', isEqualTo: User.studentId)
-                                //       .get();
-                                //
-                                //   DocumentSnapshot snap2 =
-                                //       await FirebaseFirestore.instance
-                                //           .collection("Student")
-                                //           .doc(snap.docs[0].id)
-                                //           .collection("Record")
-                                //           .doc(DateFormat('dd MMMM yy')
-                                //               .format(DateTime.now()))
-                                //           .get();
-                                //
-                                //   try {
-                                //     String checkIn = snap2['checkIn'];
-                                //
-                                //     setState(() {
-                                //       checkOut = DateFormat('hh:mm')
-                                //           .format(DateTime.now());
-                                //     });
-                                //
-                                //     await FirebaseFirestore.instance
-                                //         .collection("Student")
-                                //         .doc(snap.docs[0].id)
-                                //         .collection("Record")
-                                //         .doc(DateFormat('dd MMMM yy')
-                                //             .format(DateTime.now()))
-                                //         .update({
-                                //       'date': Timestamp.now(),
-                                //       'checkIn': checkIn,
-                                //       'checkOut': DateFormat('hh:mm')
-                                //           .format(DateTime.now()),
-                                //       'checkOutLocation': location,
-                                //     });
-                                //   } catch (e) {
-                                //     setState(() {
-                                //       checkIn = DateFormat('hh:mm')
-                                //           .format(DateTime.now());
-                                //     });
-                                //     await FirebaseFirestore.instance
-                                //         .collection("Student")
-                                //         .doc(snap.docs[0].id)
-                                //         .collection("Record")
-                                //         .doc(DateFormat('dd MMMM yy')
-                                //             .format(DateTime.now()))
-                                //         .set({
-                                //       'date': Timestamp.now(),
-                                //       'checkIn': DateFormat('hh:mm')
-                                //           .format(DateTime.now()),
-                                //       'checkOut': "--/--",
-                                //       'checkInLocation': location,
-                                //     });
-                                //   }
-                                //   key.currentState!.reset();
-                                // } else {
-                                //   Timer(
-                                //     const Duration(seconds: 3),
-                                //     () async {
-                                //       // _getLocation();
-                                //
-                                //       Future.delayed(
-                                //           const Duration(milliseconds: 500),
-                                //           () {
-                                //         key.currentState!.reset();
-                                //       });
-                                //
-                                //       QuerySnapshot snap =
-                                //           await FirebaseFirestore.instance
-                                //               .collection("Student")
-                                //               .where('id',
-                                //                   isEqualTo: User.studentId)
-                                //               .get();
-                                //
-                                //       DocumentSnapshot snap2 =
-                                //           await FirebaseFirestore.instance
-                                //               .collection("Student")
-                                //               .doc(snap.docs[0].id)
-                                //               .collection("Record")
-                                //               .doc(DateFormat('dd MMMM yy')
-                                //                   .format(DateTime.now()))
-                                //               .get();
-                                //
-                                //       try {
-                                //         String checkIn = snap2['checkIn'];
-                                //
-                                //         setState(() {
-                                //           checkOut = DateFormat('hh:mm')
-                                //               .format(DateTime.now());
-                                //         });
-                                //
-                                //         await FirebaseFirestore.instance
-                                //             .collection("Student")
-                                //             .doc(snap.docs[0].id)
-                                //             .collection("Record")
-                                //             .doc(DateFormat('dd MMMM yy')
-                                //                 .format(DateTime.now()))
-                                //             .update({
-                                //           'date': Timestamp.now(),
-                                //           'checkIn': checkIn,
-                                //           'checkOut': DateFormat('hh:mm')
-                                //               .format(DateTime.now()),
-                                //           'checkOutLocation': location,
-                                //         });
-                                //       } catch (e) {
-                                //         setState(() {
-                                //           checkIn = DateFormat('hh:mm')
-                                //               .format(DateTime.now());
-                                //         });
-                                //         await FirebaseFirestore.instance
-                                //             .collection("Student")
-                                //             .doc(snap.docs[0].id)
-                                //             .collection("Record")
-                                //             .doc(DateFormat('dd MMMM yy')
-                                //                 .format(DateTime.now()))
-                                //             .set({
-                                //           'date': Timestamp.now(),
-                                //           'checkIn': DateFormat('hh:mm')
-                                //               .format(DateTime.now()),
-                                //           'checkOut': "--/--",
-                                //           'checkInLocation': location,
-                                //         });
-                                //       }
-                                //       key.currentState!.reset();
-                                //     },
-                                //   );
-                                // }
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const LiveRecognition(),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      )
-                    : const SizedBox() : const SizedBox(),
-                Container(
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: MaterialButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const CircleSelectionScreen(),
-                          ),
-                        );
-                      },
-                      textColor: Colors.black,
-                      child: const Text("Select Circle Geofence"),
-                    ),
-                  ),
-                ),
-                if (!isInSelectedArea)
-                  const Text(
-                    'Your location is outside the selected area.',
-                    style: TextStyle(color: Colors.red),
-                  ),
-              ],
+                : const SizedBox(),
+          if (!isInSelectedArea)
+            const Text(
+              'Your location is outside the selected area.',
+              style: TextStyle(color: Colors.red),
             ),
+        ],
+      ),
     );
   }
 }
+

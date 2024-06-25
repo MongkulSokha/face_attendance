@@ -32,6 +32,13 @@ class _TodayScreenState extends State<TodayScreen> {
   void initState() {
     super.initState();
     _getRecord();
+    _refresh();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _refresh(); // Reload data when dependencies change (e.g., when the screen becomes active)
   }
 
   Future<void> _refresh() async {
@@ -39,6 +46,8 @@ class _TodayScreenState extends State<TodayScreen> {
     await Future.delayed(
         const Duration(seconds: 2)); // Simulating a delay of 1 second
 
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection("Student").doc(User.id).get();
+    Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
     // Update the _month variable with the current month
     setState(() {
       User.lastName;
@@ -281,25 +290,6 @@ class _TodayScreenState extends State<TodayScreen> {
                       "Location: $location",
                     )
                   : const SizedBox(),
-              Container(
-                margin: const EdgeInsets.only(top: 30),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const FaceRegister()));
-                  },
-                  child: Text(
-                    "Face Register",
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: screenWidth / 20,
-                      fontFamily: "NexaBold",
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),

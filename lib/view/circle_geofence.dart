@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:face_attendance/view/check_screen.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +14,7 @@ class CircleSelectionScreen extends StatefulWidget {
 class _CircleSelectionScreenState extends State<CircleSelectionScreen> {
   final Completer<GoogleMapController> _controller = Completer();
   LatLng? _selectedLatLng;
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -59,20 +59,32 @@ class _CircleSelectionScreenState extends State<CircleSelectionScreen> {
           ),
           if (_selectedLatLng != null)
             Positioned(
-              bottom: 20,
+              bottom: 80,
               left: 20,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Save the selected location to Firestore
-                  saveLocationToFirestore(_selectedLatLng!);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CheckScreen(),
+              right: 20,
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Location Name',
                     ),
-                  );
-                },
-                child: const Text('Select this location'),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Save the selected location to Firestore
+                      saveLocationToFirestore(_selectedLatLng!, _nameController.text);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CheckScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text('Select this location'),
+                  ),
+                ],
               ),
             ),
         ],
@@ -80,7 +92,7 @@ class _CircleSelectionScreenState extends State<CircleSelectionScreen> {
     );
   }
 
-  Future<void> saveLocationToFirestore(LatLng latLng) async {
+  Future<void> saveLocationToFirestore(LatLng latLng, String name) async {
     try {
       // Convert LatLng to GeoPoint
       GeoPoint geoPoint = GeoPoint(latLng.latitude, latLng.longitude);
@@ -100,6 +112,7 @@ class _CircleSelectionScreenState extends State<CircleSelectionScreen> {
             .set({
           'latitude': latLng.latitude,
           'longitude': latLng.longitude,
+          'name': name,
           // You can add more data if needed
         });
       } else {
@@ -107,6 +120,7 @@ class _CircleSelectionScreenState extends State<CircleSelectionScreen> {
         await FirebaseFirestore.instance.collection('locations').add({
           'latitude': latLng.latitude,
           'longitude': latLng.longitude,
+          'name': name,
           // You can add more data if needed
         });
       }
@@ -123,5 +137,4 @@ class _CircleSelectionScreenState extends State<CircleSelectionScreen> {
       print('Error saving location: $e');
     }
   }
-
 }

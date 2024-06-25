@@ -63,31 +63,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> checkTimeManipulation() async {
     try {
-      // Get current system time
       DateTime currentTime = DateTime.now();
-
-      // Get time from a trusted time server
       DateTime serverTime = await NTP.now();
-
-      // Calculate the time difference
       Duration difference = serverTime.difference(currentTime);
-
-      // Define a threshold for significant time difference
       Duration threshold = const Duration(seconds: 5);
-
-      // Check if the time difference is beyond the threshold
       if (difference.abs() > threshold) {
-        setState(() {
-          timeManipulated = true;
-        });
+        setState(() {timeManipulated = true;});
       } else {
-        // Reset the flag if the time difference is within the threshold
-        setState(() {
-          timeManipulated = false;
-        });
+        setState(() {timeManipulated = false;});
       }
     } catch (e) {
-      // Handle any errors, such as network issues or server unavailability
       print('Error: $e');
     }
   }

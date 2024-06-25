@@ -25,6 +25,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     super.initState();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _refresh(); // Reload data when dependencies change (e.g., when the screen becomes active)
+  }
+
   Future<void> _refresh() async {
     // Simulate fetching updated data
     await Future.delayed(
